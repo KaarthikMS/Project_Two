@@ -55,10 +55,11 @@ class DesktopBinaryScanner:
              self.capa_path = capa_path or os.environ.get("CAPA_PATH", "capa")
              
         default_rules = str(Path(PROJECT_ROOT) / "backend" / "scanners" / "capa-rules")
-        self.capa_rules = capa_rules or os.environ.get("CAPA_RULES", default_rules)
+        self.capa_rules = capa_rules or os.environ.get("CAPA_RULES", default_rules if os.path.isdir(default_rules) else "")
         
         default_sigs = str(Path(PROJECT_ROOT) / "backend" / "scanners" / "capa-signatures")
-        self.capa_sigs = os.environ.get("CAPA_SIGNATURES", default_sigs)
+        self.capa_sigs = os.environ.get("CAPA_SIGNATURES", default_sigs if os.path.isdir(default_sigs) else "")
+
 
     # ------------------------------------------------------------------
     # Public API
