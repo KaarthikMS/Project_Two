@@ -57,6 +57,8 @@ A state-of-the-art reporting engine generates high-fidelity, interactive HTML da
 | **Binary** | **Desktop** | Python | Compiled binary analysis (PE, Mach-O, ELF) |
 | **Network** | **Nmap** | Docker | Port scanning and service discovery |
 
+> **Note on Mandiant CAPA Rules**: CAPA capability analysis works out-of-the-box using built-in binary rules. For extended vendor rules, clone [mandiant/capa-rules](https://github.com/mandiant/capa-rules) into `backend/scanners/capa-rules`.
+
 ---
 
 ## 4. Local Setup & Quick Start
