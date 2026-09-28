@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Two | Security Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-base: #030712;
+            --bg-surface: rgba(17, 24, 39, 0.7);
+            --bg-surface-hover: rgba(31, 41, 55, 0.8);
+            --border-light: rgba(255, 255, 255, 0.08);
+            
+            --primary: #38bdf8;
+            --secondary: #8b5cf6;
+            
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            
+            --font-sans: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * { box-sizing: border-box; transition: background-color 0.2s, border-color 0.2s; }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            margin: 0; padding: 0;
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%);
+            background-attachment: fixed;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 3rem;
+            background: rgba(3, 7, 18, 0.6);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-light);
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        .brand {
+            font-size: 1.5rem; font-weight: 700;
+            display: flex; align-items: center; gap: 0.75rem;
+            letter-spacing: 0.02em;
+            background: linear-gradient(135deg, #38bdf8, #8b5cf6);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .brand svg { width: 28px; height: 28px; }
+
+        .scan-meta {
+            display: flex; align-items: center; gap: 1rem;
+        }
+
+        .active-scan-header {
+            background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.1);
+            border-radius: 16px; padding: 1.25rem 2rem; margin-bottom: 2rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .status-badge {
+            padding: 0.4rem 1rem; border-radius: 99px;
+            font-weight: 600; text-transform: uppercase; font-size: 0.7rem;
+            letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.5rem;
+        }
+
+        .status-secure { background: rgba(16, 185, 129, 0.1); color: var(--accent-success); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .status-risk { background: rgba(239, 68, 68, 0.1); color: var(--accent-danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+
+        .main-container {
+            max-width: 1400px; margin: 2rem auto; padding: 0 2rem;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bento-grid {
+            display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.5rem;
+        }
+
+        .glass-card {
+            background: var(--bg-surface); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-light); border-radius: 20px;
+            padding: 1.5rem; position: relative; overflow: hidden;
+        }
+
+        .glass-card:hover { border-color: rgba(255,255,255,0.15); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+
+        .col-span-4 { grid-column: span 4; }
+        .col-span-8 { grid-column: span 8; }
+        .col-span-12 { grid-column: span 12; }
+
+        .card-header {
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;
+            color: var(--text-muted); font-size: 0.75rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.08em;
+        }
+
+        .card-header span { display: flex; align-items: center; gap: 0.5rem; }
+        .card-header svg { width: 16px; height: 16px; color: var(--primary); }
+
+        .stat-value { font-size: 3rem; font-weight: 700; color: var(--text-main); line-height: 1; }
+        
+        .markdown-container h1 { font-size: 1.25rem; color: var(--primary); border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem; }
+        .markdown-container h2 { font-size: 1.1rem; color: #fff; margin-top: 1.5rem; }
+        .markdown-container code { background: rgba(56, 189, 248, 0.1); color: var(--primary); padding: 0.1rem 0.3rem; border-radius: 4px; }
+
+        .findings-explorer {
+            margin-top: 1rem;
+        }
+
+        .scanner-group {
+            margin-bottom: 2rem;
+        }
+
+        .scanner-header {
+            display: flex; align-items: center; gap: 0.5rem;
+            font-size: 0.9rem; font-weight: 700; color: #fff;
+            padding: 0.5rem 0; border-bottom: 1px solid var(--border-light);
+            margin-bottom: 1rem; text-transform: capitalize;
+        }
+
+        .findings-table {
+            width: 100%; border-collapse: collapse; font-size: 0.85rem;
+        }
+
+        .findings-table th {
+            text-align: left; padding: 0.75rem 1rem; color: var(--text-muted);
+            font-weight: 600; background: rgba(255,255,255,0.02);
+        }
+
+        .findings-table td {
+            padding: 1rem; border-bottom: 1px solid var(--border-light);
+            vertical-align: top;
+        }
+
+        .findings-table tr:hover { background: rgba(56, 189, 248, 0.03); }
+
+        .sev-badge {
+            padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700;
+            text-transform: uppercase; display: inline-block;
+        }
+
+        .sev-critical { background: rgba(239, 68, 68, 0.2); color: var(--accent-danger); border: 1px solid var(--accent-danger); }
+        .sev-high { background: rgba(249, 115, 22, 0.2); color: #fb923c; border: 1px solid #fb923c; }
+        .sev-medium { background: rgba(245, 158, 11, 0.2); color: var(--accent-warning); border: 1px solid var(--accent-warning); }
+        .sev-low { background: rgba(56, 189, 248, 0.2); color: var(--primary); border: 1px solid var(--primary); }
+        .sev-info { background: rgba(156, 163, 175, 0.2); color: var(--text-muted); border: 1px solid var(--text-muted); }
+
+        .finding-name { font-weight: 600; color: #fff; margin-bottom: 0.25rem; }
+        .finding-desc { color: var(--text-muted); font-size: 0.8rem; line-height: 1.4; max-width: 600px; }
+        
+        .empty-state {
+            padding: 3rem; text-align: center; color: var(--text-muted);
+            border: 1px dashed var(--border-light); border-radius: 12px;
+        }
+        .terminal-block { 
+            background: #000; border-radius: 12px; padding: 1.5rem; 
+            font-family: var(--font-mono); font-size: 0.85rem; color: #8bb1ff; 
+            max-height: 500px; overflow: auto; white-space: pre;
+            border: 1px solid var(--border-light);
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="brand">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Project<span style="font-weight: 300;">Two</span>
+        </div>
+        <div class="scan-meta">
+            <a href="/report/{{ report.get('scan_id', 'latest') }}" target="_blank" class="status-badge status-secure" style="text-decoration: none;">
+                Open Interactive Report ↑
+            </a>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <!-- Prominent Run Metadata -->
+        <div class="active-scan-header">
+            <div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Recent Scan Analysis</div>
+                <div style="font-size: 1.25rem; font-weight: 700; font-family: var(--font-mono); color: var(--primary);">{{ report.get('scan_id', 'RUN-LATEST') }}</div>
+                <div style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem;">Target: <span style="color: #fff; font-weight: 500;">{{ report.get('target', 'N/A') }}</span></div>
+            </div>
+            <div class="status-badge {{ 'status-secure' if 'SECURE' in report.get('summary', {}).get('overall_status', '') else 'status-risk' }}">
+                {{ report.get('summary', {}).get('overall_status', 'REPORT GENERATED') }}
+            </div>
+        </div>
+
+        <div class="bento-grid">
+            <div class="glass-card col-span-4">
+                <div class="card-header"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Intelligence Summary</span></div>
+                <div class="stat-value">{{ report.get('summary', {}).get('total_vulnerabilities', 0) }}</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">Detected security signals across all scanners</div>
+            </div>
+
+            <div class="glass-card col-span-8">
+                <div class="card-header"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Security Posture Trend</span></div>
+                <canvas id="trendChart" height="60"></canvas>
+            </div>
+
+            <div class="glass-card col-span-12">
+                <div class="card-header"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-1.5v2.5h-3V8.5H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h6z"/><path d="M4 14a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2z"/><path d="M14 14a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2z"/></svg> AI Security Synthesis (Claude 3.5 Bedrock)</span></div>
+                <div id="ai-raw-content" style="display:none;">{{ report.get('ai_analysis', 'Data plane active. Awaiting synthesis...') }}</div>
+                <div id="ai-rendered-content" class="markdown-container"></div>
+            </div>
+
+            <div class="glass-card col-span-12">
+                <div class="card-header"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Raw Findings Telemetry (Structured JSON)</span></div>
+                <pre class="terminal-block">{{ report.get('findings', report.get('scans', {})) | tojson(indent=2) }}</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Markdown
+            const rawContent = document.getElementById('ai-raw-content').textContent;
+            if (rawContent) document.getElementById('ai-rendered-content').innerHTML = marked.parse(rawContent);
+
+            // Trend Chart
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            const trendData = {{ trend_data | tojson }};
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: trendData.labels,
+                    datasets: [
+                        { label: 'Critical', data: trendData.critical, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', fill: true, tension: 0.4 },
+                        { label: 'High', data: trendData.high, borderColor: '#f97316', backgroundColor: 'rgba(249, 115, 22, 0.1)', fill: true, tension: 0.4 },
+                        { label: 'Medium', data: trendData.medium, borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)', fill: true, tension: 0.4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af' } },
+                        x: { grid: { display: false }, ticks: { color: '#9ca3af' } }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

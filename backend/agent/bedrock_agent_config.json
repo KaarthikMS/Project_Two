@@ -1,0 +1,295 @@
+{
+    "agentName": "Project_Two-Agent",
+    "agentDescription": "An AI-powered security agent that performs comprehensive security scanning including SAST, DAST, dependency analysis, secret detection, network scanning, and more.",
+    "agentVersion": "1.0.0",
+    "foundationModel": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+    "instruction": "You are an expert AI security engineer. Your role is to perform comprehensive security assessments of codebases, APIs, networks, and cloud infrastructure. Analyze findings from multiple scanners, correlate vulnerabilities, prioritize risks, and provide actionable remediation guidance. Always explain the impact, likelihood, and fix strategy for each finding.",
+    "idleSessionTTLInSeconds": 1800,
+    "agentResourceRoleArn": "${AGENT_ROLE_ARN}",
+    "actionGroups": [
+        {
+            "actionGroupName": "SecurityScanners",
+            "description": "Perform various security scans on repositories, APIs, networks, and cloud resources",
+            "actionGroupExecutor": {
+                "lambda": "${CONTROLLER_LAMBDA_ARN}"
+            },
+            "apiSchema": {
+                "payload": {
+                    "openapi": "3.0.0",
+                    "info": {
+                        "title": "Security Scanner API",
+                        "version": "1.0.0"
+                    },
+                    "paths": {
+                        "/scan/repo": {
+                            "post": {
+                                "operationId": "scanRepository",
+                                "summary": "Scan a git repository for vulnerabilities",
+                                "requestBody": {
+                                    "required": true,
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "repo_url": {
+                                                        "type": "string"
+                                                    },
+                                                    "branch": {
+                                                        "type": "string",
+                                                        "default": "main"
+                                                    },
+                                                    "scan_types": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        },
+                                                        "description": "List of scan types: sast, secrets, dependencies, binary, apk"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "repo_url"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                },
+                                "responses": {
+                                    "200": {
+                                        "description": "Scan results",
+                                        "content": {
+                                            "application/json": {
+                                                "schema": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "/scan/web": {
+                            "post": {
+                                "operationId": "scanWebApplication",
+                                "summary": "Perform DAST scan on a web application using ZAP and Nuclei",
+                                "requestBody": {
+                                    "required": true,
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "target_url": {
+                                                        "type": "string"
+                                                    },
+                                                    "scan_policy": {
+                                                        "type": "string",
+                                                        "default": "Default Policy"
+                                                    },
+                                                    "authenticated": {
+                                                        "type": "boolean",
+                                                        "default": false
+                                                    }
+                                                },
+                                                "required": [
+                                                    "target_url"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                },
+                                "responses": {
+                                    "200": {
+                                        "description": "DAST scan results"
+                                    }
+                                }
+                            }
+                        },
+                        "/scan/network": {
+                            "post": {
+                                "operationId": "scanNetwork",
+                                "summary": "Perform network port and service scan using Nmap",
+                                "requestBody": {
+                                    "required": true,
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "target": {
+                                                        "type": "string"
+                                                    },
+                                                    "ports": {
+                                                        "type": "string",
+                                                        "default": "1-1024"
+                                                    },
+                                                    "scan_type": {
+                                                        "type": "string",
+                                                        "default": "syn"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "target"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                },
+                                "responses": {
+                                    "200": {
+                                        "description": "Network scan results"
+                                    }
+                                }
+                            }
+                        },
+                        "/scan/aws": {
+                            "post": {
+                                "operationId": "scanAWSConfig",
+                                "summary": "Scan AWS account for misconfigurations",
+                                "requestBody": {
+                                    "required": true,
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "regions": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "services": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "responses": {
+                                    "200": {
+                                        "description": "AWS configuration scan results"
+                                    }
+                                }
+                            }
+                        },
+                        "/scan/model": {
+                            "post": {
+                                "operationId": "scanMLModel",
+                                "summary": "Scan an ML model for security issues like prompt injection, data poisoning risks",
+                                "requestBody": {
+                                    "required": true,
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "model_path": {
+                                                        "type": "string"
+                                                    },
+                                                    "model_type": {
+                                                        "type": "string"
+                                                    },
+                                                    "test_prompts": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                },
+                                                "required": [
+                                                    "model_path"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                },
+                                "responses": {
+                                    "200": {
+                                        "description": "ML model security scan results"
+                                    }
+                                }
+                            }
+                        },
+                        "/report/generate": {
+                            "post": {
+                                "operationId": "generateReport",
+                                "summary": "Generate a comprehensive security report from scan results",
+                                "requestBody": {
+                                    "required": true,
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "scan_ids": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "format": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "pdf",
+                                                            "html",
+                                                            "json",
+                                                            "markdown"
+                                                        ]
+                                                    },
+                                                    "include_remediation": {
+                                                        "type": "boolean",
+                                                        "default": true
+                                                    }
+                                                },
+                                                "required": [
+                                                    "scan_ids"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                },
+                                "responses": {
+                                    "200": {
+                                        "description": "Generated report"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "knowledgeBases": [],
+    "guardrailConfiguration": {
+        "guardrailId": "${GUARDRAIL_ID}",
+        "guardrailVersion": "DRAFT"
+    },
+    "promptOverrideConfiguration": {
+        "promptConfigurations": [
+            {
+                "promptType": "ORCHESTRATION",
+                "promptCreationMode": "OVERRIDDEN",
+                "promptState": "ENABLED",
+                "basePromptTemplate": "${VULNERABILITY_PROMPT_S3_URI}",
+                "inferenceConfiguration": {
+                    "temperature": 0.1,
+                    "topP": 0.9,
+                    "topK": 250,
+                    "maximumLength": 4096,
+                    "stopSequences": []
+                }
+            }
+        ]
+    },
+    "tags": {
+        "Project": "AI-Security-Engineer-Agent",
+        "Environment": "production",
+        "Team": "security"
+    }
+}

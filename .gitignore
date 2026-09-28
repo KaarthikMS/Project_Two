@@ -1,0 +1,70 @@
+# =========================================
+# Project_Two - .gitignore
+# =========================================
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+eggs/
+*.egg
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Runtime Artifacts
+tmp/
+chroma_db/
+history/
+
+# Reports (generated at runtime)
+backend/reports/poc_demo/
+backend/reports/scans/
+backend/reports/latest_report.json
+backend/reports/real_test_report.json
+
+# Scan output files
+out_with_dataflow.json
+out_without.json
+
+# Third-party scanner datasets (downloaded at runtime)
+backend/scanners/capa-rules/
+backend/scanners/capa-signatures/
+
+# Test / Cache
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Docker
+docker-compose.override.yml
+
+# AWS
+.aws/
+deployment_package.zip
+package/
+
+# Miscellaneous
+*.log
+*.pid
+*.seed

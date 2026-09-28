@@ -1,0 +1,49 @@
+services:
+  # ⚡ OWASP ZAP DAST Scanner
+  zap:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    container_name: dev_zap_scanner
+    volumes:
+      - ./backend/reports/scans:/zap/wrk/:rw
+    networks:
+      - secnet
+    command: /zap/zap.sh -daemon -host 0.0.0.0 -port 8090 -config api.disablekey=true
+
+  # 🎯 Nuclei Vulnerability Scanner
+  nuclei:
+    image: projectdiscovery/nuclei:latest
+    container_name: dev_nuclei_scanner
+    volumes:
+      - ./tmp/scans:/app/output
+      - ./tmp/nuclei-templates:/root/nuclei-templates:rw
+    networks:
+      - secnet
+    entrypoint: /bin/sh
+    command: -c "tail -f /dev/null"
+
+  # 🔍 Nmap Network Scanner
+  nmap:
+    image: instrumentisto/nmap
+    container_name: dev_nmap_scanner
+    privileged: true
+    volumes:
+      - ./backend/reports/scans:/tmp/nmap
+    networks:
+      - secnet
+    entrypoint: /bin/sh
+    command: -c "tail -f /dev/null"
+
+  # 📱 OWASP MobSF (Mobile Security Framework)
+  mobsf:
+    image: opensecurity/mobile-security-framework-mobsf:latest
+    container_name: dev_mobsf
+    ports:
+      - "8001:8000"
+    environment:
+      - MOBSF_API_KEY=mobsf_fixed_api_key_12345
+    networks:
+      - secnet
+
+networks:
+  secnet:
+    driver: bridge
